@@ -65,6 +65,10 @@
         .remove-btn:hover {
             background-color: #d32f2f;
         }
+        .warning {
+            color: #f44336;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -77,13 +81,11 @@
             <input type="number" id="proteinRatio" placeholder="Enter desired protein ratio (g/kg/day)" value="1.3" onchange="calculateDailyProtein()">
         </div>
         <p id="dailyProteinResult"></p>
+        
         <h2>Weekly Protein Sources Calculator</h2>
         <p id="weeklyProteinResult"></p>
-        <div class="input-group">
-            <select id="proteinSource"></select>
-            <input type="number" id="percentageOfTotal" placeholder="Percentage of total protein (%)">
-            <button onclick="addWeeklySource()">Add Source</button>
-        </div>
+        <button onclick="addWeeklySource()">Add Source</button>
+        <p id="percentageWarning" class="warning"></p>
         <table id="weeklySourcesTable">
             <thead>
                 <tr>
@@ -95,8 +97,7 @@
             </thead>
             <tbody id="weeklySourcesBody"></tbody>
         </table>
-        <button onclick="calculateWeeklyAmounts()">Update Projected Amounts</button>
-        
+
         <h2>Common Protein Sources</h2>
         <table id="proteinSourcesTable">
             <tr>
@@ -122,7 +123,7 @@
         ];
 
         let dailyProteinRequirement = 0;
-        let weeklySources = [];
+        let weeklySources = [{ name: "Chicken Breast", percentage: 100 }];
 
         function calculateDailyProtein() {
             const bodyweight = parseFloat(document.getElementById('bodyweight').value);
@@ -138,7 +139,7 @@
             
             updateProteinSourcesTable();
             updateWeeklyProteinResult();
-            populateProteinSourceDropdown();
+            updateWeeklySourcesTable();
         }
         calculateDailyProtein()
 
@@ -171,30 +172,9 @@
             document.getElementById('weeklyProteinResult').textContent = `Your weekly protein requirement is ${weeklyProtein.toFixed(2)}g.`;
         }
 
-        function populateProteinSourceDropdown() {
-            const select = document.getElementById('proteinSource');
-            select.innerHTML = '';
-            proteinSources.forEach(source => {
-                const option = document.createElement('option');
-                option.value = source.name;
-                option.textContent = source.name;
-                select.appendChild(option);
-            });
-        }
-
         function addWeeklySource() {
-            const sourceName = document.getElementById('proteinSource').value;
-            const percentage = parseFloat(document.getElementById('percentageOfTotal').value);
-            
-            if (isNaN(percentage) || percentage <= 0 || percentage > 100) {
-                alert("Please enter a valid percentage between 1 and 100.");
-                return;
-            }
-            
-            weeklySources.push({ name: sourceName, percentage: percentage });
+            weeklySources.push({ name: proteinSources[0].name, percentage: 0 });
             updateWeeklySourcesTable();
-            document.getElementById('percentageOfTotal').value = '';
-            updateProteinSourcesTable();
         }
 
         function updateWeeklySourcesTable() {
@@ -202,15 +182,41 @@
             tableBody.innerHTML = '';
             weeklySources.forEach((source, index) => {
                 const row = tableBody.insertRow();
-                row.insertCell(0).textContent = source.name;
-                row.insertCell(1).textContent = `${source.percentage}%`;
-                row.insertCell(2).textContent = 'Calculate to update';
+                
+                const sourceCell = row.insertCell(0);
+                const sourceSelect = document.createElement('select');
+                proteinSources.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = s.name;
+                    option.textContent = s.name;
+                    sourceSelect.appendChild(option);
+                });
+                sourceSelect.value = source.name;
+                sourceSelect.onchange = (e) => updateSource(index, 'name', e.target.value);
+                sourceCell.appendChild(sourceSelect);
+                
+                const percentageCell = row.insertCell(1);
+                const percentageInput = document.createElement('input');
+                percentageInput.type = 'number';
+                percentageInput.value = source.percentage;
+                percentageInput.onchange = (e) => updateSource(index, 'percentage', parseFloat(e.target.value) || 0);
+                percentageCell.appendChild(percentageInput);
+                
+                row.insertCell(2).textContent = calculateWeeklyAmount(source);
+                
+                const actionCell = row.insertCell(3);
                 const removeButton = document.createElement('button');
                 removeButton.textContent = 'Remove';
                 removeButton.className = 'remove-btn';
                 removeButton.onclick = () => removeWeeklySource(index);
-                row.insertCell(3).appendChild(removeButton);
+                actionCell.appendChild(removeButton);
             });
+            updatePercentageWarning();
+        }
+
+        function updateSource(index, field, value) {
+            weeklySources[index][field] = value;
+            updateWeeklySourcesTable();
         }
 
         function removeWeeklySource(index) {
@@ -218,41 +224,33 @@
             updateWeeklySourcesTable();
         }
 
-        function calculateWeeklyAmounts() {
-            if (dailyProteinRequirement === 0) {
-                alert("Please calculate your daily protein requirement first.");
-                return;
-            }
-
+        function calculateWeeklyAmount(source) {
+            if (dailyProteinRequirement === 0) return 'Calculate daily requirement first';
             const weeklyProtein = dailyProteinRequirement * 7;
-            let totalPercentage = weeklySources.reduce((sum, source) => sum + source.percentage, 0);
+            const proteinFromSource = weeklyProtein * (source.percentage / 100);
+            const sourceData = proteinSources.find(s => s.name === source.name);
+            const amountOfSource = (proteinFromSource / sourceData.proteinPer100g) * 100;
+            
+            if (sourceData.unit) {
+                const units = amountOfSource / 50;
+                return `${units.toFixed(1)} ${sourceData.unit.split(' ')[1]}`;
+            }
+            return `${amountOfSource.toFixed(1)}g`;
+        }
 
-            // if (totalPercentage !== 100) {
-            //     alert(`The total percentage should be 100%. Current total: ${totalPercentage}%`);
-            //     return;
-            // }
-
-            const tableBody = document.getElementById('weeklySourcesBody');
-            weeklySources.forEach((weeklySource, index) => {
-                const source = proteinSources.find(s => s.name === weeklySource.name);
-                const proteinFromSource = weeklyProtein * (weeklySource.percentage / 100);
-                const amountOfSource = (proteinFromSource / source.proteinPer100g) * 100;
-                
-                let result;
-                if (source.unit) {
-                    const units = amountOfSource / 50;
-                    result = `${units.toFixed(1)} ${source.unit.split(' ')[1]}`;
-                } else {
-                    result = `${amountOfSource.toFixed(1)}g`;
-                }
-                
-                tableBody.rows[index].cells[2].textContent = result;
-            });
+        function updatePercentageWarning() {
+            const totalPercentage = weeklySources.reduce((sum, source) => sum + source.percentage, 0);
+            const warningElement = document.getElementById('percentageWarning');
+            if (totalPercentage !== 100) {
+                warningElement.textContent = `Warning: Total percentage is ${totalPercentage}%. It should be 100%.`;
+            } else {
+                warningElement.textContent = '';
+            }
         }
 
         // Initialize the page
         updateProteinSourcesTable();
-        populateProteinSourceDropdown();
+        updateWeeklySourcesTable();
     </script>
 </body>
 </html>
