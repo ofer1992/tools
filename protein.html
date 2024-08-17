@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,42 +13,55 @@
             padding: 20px;
             background-color: #f4f4f4;
         }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
             background-color: #fff;
             padding: 20px;
             border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        h1, h2 {
+
+        h1,
+        h2 {
             color: #333;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-        th, td {
+
+        th,
+        td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
         }
+
         th {
             background-color: #f2f2f2;
         }
-        input, select {
+
+        input,
+        select {
             padding: 8px;
             margin-bottom: 10px;
         }
+
         .input-group {
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
         }
-        .input-group input, .input-group select {
+
+        .input-group input,
+        .input-group select {
             flex: 1;
         }
+
         button {
             background-color: #4CAF50;
             color: white;
@@ -56,32 +70,39 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #45a049;
         }
+
         .remove-btn {
             background-color: #f44336;
         }
+
         .remove-btn:hover {
             background-color: #d32f2f;
         }
+
         .warning {
             color: #f44336;
             margin-top: 10px;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Protein Calculator for Bodybuilding</h1>
-        
+
         <h2>Calculate Daily Protein Requirement</h2>
         <div class="input-group">
-            <input type="number" id="bodyweight" placeholder="Enter your bodyweight (kg)" value="75" onchange="calculateDailyProtein()">
-            <input type="number" id="proteinRatio" placeholder="Enter desired protein ratio (g/kg/day)" value="1.3" onchange="calculateDailyProtein()">
+            <input type="number" id="bodyweight" placeholder="Enter your bodyweight (kg)" value="75"
+                onchange="calculateDailyProtein()">
+            <input type="number" id="proteinRatio" placeholder="Enter desired protein ratio (g/kg/day)" value="1.3"
+                onchange="calculateDailyProtein()">
         </div>
         <p id="dailyProteinResult"></p>
-        
+
         <h2>Weekly Protein Sources Calculator</h2>
         <p id="weeklyProteinResult"></p>
         <button onclick="addWeeklySource()">Add Source</button>
@@ -107,61 +128,73 @@
                 <th>Amount for 25g protein</th>
             </tr>
         </table>
-        
+
     </div>
 
     <script>
         const proteinSources = [
             { name: "Chicken Breast", proteinPer100g: 31 },
+            { name: "Tuna", proteinPer100g: 26},
+            { name: "Hard Cheese", proteinPer100g: 25},
             { name: "Egg", proteinPer100g: 13, unit: "per egg (50g)" },
-            { name: "Greek Yogurt", proteinPer100g: 10 },
-            { name: "Salmon", proteinPer100g: 25 },
             { name: "Whey Protein", proteinPer100g: 80 },
-            { name: "Tofu", proteinPer100g: 8 },
+            { name: "Almonds", proteinPer100g: 21},
+            { name: "Greek Yogurt", proteinPer100g: 10 },
             { name: "Lean Beef", proteinPer100g: 26 },
-            { name: "Cottage Cheese", proteinPer100g: 11 }
+            { name: "Cottage Cheese", proteinPer100g: 11 },
+            { name: "Tofu", proteinPer100g: 8 },
+            { name: "Salmon", proteinPer100g: 25 }
         ];
 
         let dailyProteinRequirement = 0;
         let weeklySources = [{ name: "Chicken Breast", percentage: 100 }];
 
+        function saveWeeklySources() {
+            localStorage.setItem('weeklySources', JSON.stringify(weeklySources));
+        }
+
+        function loadWeeklySources() {
+            const saved = localStorage.getItem('weeklySources');
+            if (saved) {
+                weeklySources = JSON.parse(saved);
+            }
+        }
+
         function calculateDailyProtein() {
             const bodyweight = parseFloat(document.getElementById('bodyweight').value);
             const proteinRatio = parseFloat(document.getElementById('proteinRatio').value);
-            
+
             if (isNaN(bodyweight) || isNaN(proteinRatio)) {
-                // alert("Please enter valid numbers for bodyweight and protein ratio.");
                 return;
             }
-            
+
             dailyProteinRequirement = bodyweight * proteinRatio;
             document.getElementById('dailyProteinResult').textContent = `Your daily protein requirement is ${dailyProteinRequirement.toFixed(2)}g.`;
-            
+
             updateProteinSourcesTable();
             updateWeeklyProteinResult();
             updateWeeklySourcesTable();
         }
-        calculateDailyProtein()
 
         function updateProteinSourcesTable() {
             const table = document.getElementById('proteinSourcesTable');
             table.innerHTML = `
-                <tr>
-                    <th>Source</th>
-                    <th>Protein per 100g</th>
-                    <th>Amount for 40g protein</th>
-                    <th>Amount for 25g protein</th>
-                </tr>
-            `;
-            
+        <tr>
+            <th>Source</th>
+            <th>Protein per 100g</th>
+            <th>Amount for 40g protein</th>
+            <th>Amount for 25g protein</th>
+        </tr>
+    `;
+
             proteinSources.forEach(source => {
                 const row = table.insertRow();
                 row.insertCell(0).textContent = source.name;
                 row.insertCell(1).textContent = `${source.proteinPer100g}g ${source.unit ? source.unit : ''}`;
-                row.insertCell(2).textContent = source.unit ? 
+                row.insertCell(2).textContent = source.unit ?
                     `${(40 / source.proteinPer100g * 2).toFixed(1)} ${source.unit.split(' ')[1]}` :
                     `${(40 / source.proteinPer100g * 100).toFixed(1)}g`;
-                row.insertCell(3).textContent = source.unit ? 
+                row.insertCell(3).textContent = source.unit ?
                     `${(25 / source.proteinPer100g * 2).toFixed(1)} ${source.unit.split(' ')[1]}` :
                     `${(25 / source.proteinPer100g * 100).toFixed(1)}g`;
             });
@@ -175,6 +208,7 @@
         function addWeeklySource() {
             weeklySources.push({ name: proteinSources[0].name, percentage: 0 });
             updateWeeklySourcesTable();
+            saveWeeklySources(); // Save after adding
         }
 
         function updateWeeklySourcesTable() {
@@ -182,7 +216,7 @@
             tableBody.innerHTML = '';
             weeklySources.forEach((source, index) => {
                 const row = tableBody.insertRow();
-                
+
                 const sourceCell = row.insertCell(0);
                 const sourceSelect = document.createElement('select');
                 proteinSources.forEach(s => {
@@ -194,16 +228,16 @@
                 sourceSelect.value = source.name;
                 sourceSelect.onchange = (e) => updateSource(index, 'name', e.target.value);
                 sourceCell.appendChild(sourceSelect);
-                
+
                 const percentageCell = row.insertCell(1);
                 const percentageInput = document.createElement('input');
                 percentageInput.type = 'number';
                 percentageInput.value = source.percentage;
                 percentageInput.onchange = (e) => updateSource(index, 'percentage', parseFloat(e.target.value) || 0);
                 percentageCell.appendChild(percentageInput);
-                
+
                 row.insertCell(2).textContent = calculateWeeklyAmount(source);
-                
+
                 const actionCell = row.insertCell(3);
                 const removeButton = document.createElement('button');
                 removeButton.textContent = 'Remove';
@@ -212,6 +246,7 @@
                 actionCell.appendChild(removeButton);
             });
             updatePercentageWarning();
+            saveWeeklySources(); // Save after each update
         }
 
         function updateSource(index, field, value) {
@@ -222,6 +257,7 @@
         function removeWeeklySource(index) {
             weeklySources.splice(index, 1);
             updateWeeklySourcesTable();
+            saveWeeklySources(); // Save after removing
         }
 
         function calculateWeeklyAmount(source) {
@@ -230,7 +266,7 @@
             const proteinFromSource = weeklyProtein * (source.percentage / 100);
             const sourceData = proteinSources.find(s => s.name === source.name);
             const amountOfSource = (proteinFromSource / sourceData.proteinPer100g) * 100;
-            
+
             if (sourceData.unit) {
                 const units = amountOfSource / 50;
                 return `${units.toFixed(1)} ${sourceData.unit.split(' ')[1]}`;
@@ -249,8 +285,16 @@
         }
 
         // Initialize the page
-        updateProteinSourcesTable();
-        updateWeeklySourcesTable();
+        function initializePage() {
+            loadWeeklySources(); // Load saved data
+            calculateDailyProtein();
+            updateProteinSourcesTable();
+            updateWeeklySourcesTable();
+        }
+
+        // Call initializePage when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', initializePage);
     </script>
 </body>
+
 </html>
