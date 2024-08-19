@@ -105,19 +105,19 @@
 
         <h2>Weekly Protein Sources Calculator</h2>
         <p id="weeklyProteinResult"></p>
-        <button onclick="addWeeklySource()">Add Source</button>
         <p id="percentageWarning" class="warning"></p>
         <table id="weeklySourcesTable">
             <thead>
                 <tr>
                     <th>Protein Source</th>
                     <th>Percentage</th>
-                    <th>Projected Amount</th>
+                    <th>Amount (g)</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody id="weeklySourcesBody"></tbody>
         </table>
+        <button onclick="addWeeklySource()">Add Source</button>
 
         <h2>Common Protein Sources</h2>
         <table id="proteinSourcesTable">
@@ -134,11 +134,11 @@
     <script>
         const proteinSources = [
             { name: "Chicken Breast", proteinPer100g: 31 },
-            { name: "Tuna", proteinPer100g: 26},
-            { name: "Hard Cheese", proteinPer100g: 25},
+            { name: "Tuna", proteinPer100g: 26 },
+            { name: "Hard Cheese", proteinPer100g: 25 },
             { name: "Egg", proteinPer100g: 13, unit: "per egg (50g)" },
             { name: "Whey Protein", proteinPer100g: 80 },
-            { name: "Almonds", proteinPer100g: 21},
+            { name: "Almonds", proteinPer100g: 21 },
             { name: "Greek Yogurt", proteinPer100g: 10 },
             { name: "Lean Beef", proteinPer100g: 26 },
             { name: "Cottage Cheese", proteinPer100g: 11 },
@@ -147,7 +147,7 @@
         ];
 
         let dailyProteinRequirement = 0;
-        let weeklySources = [{ name: "Chicken Breast", percentage: 100 }];
+        let weeklySources = [{ name: "Chicken Breast", percentage: 100, amount: 0 }];
 
         function saveWeeklySources() {
             localStorage.setItem('weeklySources', JSON.stringify(weeklySources));
@@ -206,9 +206,9 @@
         }
 
         function addWeeklySource() {
-            weeklySources.push({ name: proteinSources[0].name, percentage: 0 });
+            weeklySources.push({ name: proteinSources[0].name, percentage: 0, amount: 0 });
             updateWeeklySourcesTable();
-            saveWeeklySources(); // Save after adding
+            saveWeeklySources();
         }
 
         function updateWeeklySourcesTable() {
@@ -236,7 +236,12 @@
                 percentageInput.onchange = (e) => updateSource(index, 'percentage', parseFloat(e.target.value) || 0);
                 percentageCell.appendChild(percentageInput);
 
-                row.insertCell(2).textContent = calculateWeeklyAmount(source);
+                const amountCell = row.insertCell(2);
+                const amountInput = document.createElement('input');
+                amountInput.type = 'number';
+                amountInput.value = source.amount;
+                amountInput.onchange = (e) => updateSource(index, 'amount', parseFloat(e.target.value) || 0);
+                amountCell.appendChild(amountInput);
 
                 const actionCell = row.insertCell(3);
                 const removeButton = document.createElement('button');
@@ -246,53 +251,58 @@
                 actionCell.appendChild(removeButton);
             });
             updatePercentageWarning();
-            saveWeeklySources(); // Save after each update
+            saveWeeklySources();
         }
 
         function updateSource(index, field, value) {
             weeklySources[index][field] = value;
+            if (field === 'percentage') {
+                weeklySources[index].amount = calculateAmountFromPercentage(weeklySources[index]);
+            } else if (field === 'amount') {
+                weeklySources[index].percentage = calculatePercentageFromAmount(weeklySources[index]);
+            }
             updateWeeklySourcesTable();
         }
 
         function removeWeeklySource(index) {
             weeklySources.splice(index, 1);
             updateWeeklySourcesTable();
-            saveWeeklySources(); // Save after removing
+            saveWeeklySources();
         }
 
-        function calculateWeeklyAmount(source) {
-            if (dailyProteinRequirement === 0) return 'Calculate daily requirement first';
+        function calculateAmountFromPercentage(source) {
             const weeklyProtein = dailyProteinRequirement * 7;
             const proteinFromSource = weeklyProtein * (source.percentage / 100);
             const sourceData = proteinSources.find(s => s.name === source.name);
-            const amountOfSource = (proteinFromSource / sourceData.proteinPer100g) * 100;
+            return (proteinFromSource / sourceData.proteinPer100g) * 100;
+        }
 
-            if (sourceData.unit) {
-                const units = amountOfSource / 50;
-                return `${units.toFixed(1)} ${sourceData.unit.split(' ')[1]}`;
-            }
-            return `${amountOfSource.toFixed(1)}g`;
+        function calculatePercentageFromAmount(source) {
+            const sourceData = proteinSources.find(s => s.name === source.name);
+            const proteinFromSource = (source.amount / 100) * sourceData.proteinPer100g;
+            const weeklyProtein = dailyProteinRequirement * 7;
+            return (proteinFromSource / weeklyProtein) * 100;
         }
 
         function updatePercentageWarning() {
             const totalPercentage = weeklySources.reduce((sum, source) => sum + source.percentage, 0);
+            const totalAmount = totalPercentage * dailyProteinRequirement / 100;
             const warningElement = document.getElementById('percentageWarning');
-            if (totalPercentage !== 100) {
-                warningElement.textContent = `Warning: Total percentage is ${totalPercentage}%. It should be 100%.`;
+            warningElement.textContent = `Total percentage is ${totalPercentage.toFixed(1)}% (${totalAmount.toFixed(0)}g per day).`;
+            if (totalPercentage < 100) {
+                warningElement.classList.add('warning')
             } else {
-                warningElement.textContent = '';
+                warningElement.classList.remove('warning')
             }
         }
 
-        // Initialize the page
         function initializePage() {
-            loadWeeklySources(); // Load saved data
+            loadWeeklySources();
             calculateDailyProtein();
             updateProteinSourcesTable();
             updateWeeklySourcesTable();
         }
 
-        // Call initializePage when the DOM is fully loaded
         document.addEventListener('DOMContentLoaded', initializePage);
     </script>
 </body>
