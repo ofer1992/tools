@@ -87,6 +87,17 @@
             color: #f44336;
             margin-top: 10px;
         }
+
+        #customSourceForm {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        #customSourceForm h3 {
+            margin-top: 0;
+        }
     </style>
 </head>
 
@@ -129,10 +140,20 @@
             </tr>
         </table>
 
+        <div id="customSourceForm">
+            <h3>Add Custom Protein Source</h3>
+            <div class="input-group">
+                <input type="text" id="customSourceName" placeholder="Source name">
+                <input type="number" id="customSourceProtein" placeholder="Protein per 100g">
+                <input type="text" id="customSourceUnit" placeholder="Unit (optional)">
+                <button onclick="addCustomSource()">Add Source</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        const proteinSources = [
+        const defaultProteinSources = [
             { name: "Chicken Breast", proteinPer100g: 31 },
             { name: "Tuna", proteinPer100g: 26 },
             { name: "Hard Cheese", proteinPer100g: 25 },
@@ -146,17 +167,52 @@
             { name: "Salmon", proteinPer100g: 25 }
         ];
 
+        let proteinSources = [];
         let dailyProteinRequirement = 0;
         let weeklySources = [{ name: "Chicken Breast", percentage: 100, amount: 0 }];
 
+        function saveToSessionStorage(key, value) {
+            sessionStorage.setItem(key, JSON.stringify(value));
+        }
+
+        function loadFromSessionStorage(key, defaultValue) {
+            const saved = sessionStorage.getItem(key);
+            return saved ? JSON.parse(saved) : defaultValue;
+        }
+
         function saveWeeklySources() {
-            localStorage.setItem('weeklySources', JSON.stringify(weeklySources));
+            saveToSessionStorage('weeklySources', weeklySources);
         }
 
         function loadWeeklySources() {
-            const saved = localStorage.getItem('weeklySources');
-            if (saved) {
-                weeklySources = JSON.parse(saved);
+            weeklySources = loadFromSessionStorage('weeklySources', weeklySources);
+        }
+
+        function saveProteinSources() {
+            saveToSessionStorage('proteinSources', proteinSources);
+        }
+
+        function loadProteinSources() {
+            proteinSources = loadFromSessionStorage('proteinSources', defaultProteinSources);
+        }
+
+        function addCustomSource() {
+            const name = document.getElementById('customSourceName').value;
+            const protein = parseFloat(document.getElementById('customSourceProtein').value);
+            const unit = document.getElementById('customSourceUnit').value;
+
+            if (name && !isNaN(protein)) {
+                const newSource = { name, proteinPer100g: protein };
+                if (unit) newSource.unit = unit;
+                proteinSources.push(newSource);
+                saveProteinSources();
+                updateProteinSourcesTable();
+                // Clear input fields
+                document.getElementById('customSourceName').value = '';
+                document.getElementById('customSourceProtein').value = '';
+                document.getElementById('customSourceUnit').value = '';
+            } else {
+                alert('Please enter a valid name and protein content.');
             }
         }
 
@@ -297,6 +353,7 @@
         }
 
         function initializePage() {
+            loadProteinSources();
             loadWeeklySources();
             calculateDailyProtein();
             updateProteinSourcesTable();
