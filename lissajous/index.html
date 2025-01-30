@@ -79,21 +79,23 @@
             noFill();
             stroke(128);
             strokeWeight(3);
+            drawingContext.setLineDash([1, 3]);
             rect(rectX, rectY, rectW, rectH);
+            drawingContext.setLineDash([]);
 
 
             // Draw circle and diameters
 
             noFill();
-            stroke(128);
-            strokeWeight(3);
+            stroke('red');
+            strokeWeight(2);
             circle(VcircleX, VcircleY, 2 * VcircleRadius);
             line(VcircleX, VcircleY - VcircleRadius, VcircleX, VcircleY + VcircleRadius);
             line(VcircleX - VcircleRadius, VcircleY, VcircleX + VcircleRadius, VcircleY);
 
             noFill();
-            stroke(128);
-            strokeWeight(3);
+            stroke('orange');
+            strokeWeight(2);
             circle(HcircleX, HcircleY, 2 * HcircleRadius);
             line(HcircleX, HcircleY - HcircleRadius, HcircleX, HcircleY + HcircleRadius);
             line(HcircleX - HcircleRadius, HcircleY, HcircleX + HcircleRadius, HcircleY);
@@ -110,7 +112,7 @@
 
             noStroke();
 
-            fill('white');
+            fill('red');
             circle(VpointX, VpointY, 10);
 
             // Horizontal
@@ -123,17 +125,20 @@
 
             noStroke();
 
-            fill('white');
+            fill('orange');
             circle(HpointX, HpointY, 10);
 
             // Draw Lissajous curve
+            const HY = t => cos(Hfreq * t + phase);
+            const VY = t => sin(Vfreq * t);
 
             noFill();
-            stroke('white');
+            stroke(180);
+            strokeWeight(2);
             beginShape();
-            for (let t = 0; t <= 360; t++) {
-                let x = HcircleX + HcircleRadius * cos(Hfreq * t + phase);
-                let y = VcircleY - VcircleRadius * sin(Vfreq * t);
+            for (let t = 0; t <= 360; t+=0.5) {
+                let x = HcircleX + HcircleRadius * HY(t);
+                let y = VcircleY - VcircleRadius * VY(t);
                 vertex(x, y);
             }
             endShape();
@@ -180,7 +185,7 @@
             beginShape();
             for (let t = 0; t <= 360; t++) {
                 let x = map(t, 0, 360, graphX, graphX + graphPeriod);
-                let y = graphY - graphAmplitude * cos(Hfreq * t + phase);
+                let y = graphY - graphAmplitude * HY(t);
                 vertex(x, y);
             }
             endShape();
@@ -192,7 +197,7 @@
             beginShape();
             for (let t = 0; t <= 360; t++) {
                 let x = map(t, 0, 360, graphX, graphX + graphPeriod);
-                let y = graphY - graphAmplitude * sin(Vfreq * t) / 2;
+                let y = graphY - graphAmplitude * VY(t) / 2;
                 vertex(x, y);
             }
             endShape();
@@ -204,12 +209,11 @@
             beginShape();
             for (let t = 0; t <= 360; t++) {
                 let x = map(t, 0, 360, graphX, graphX + graphPeriod);
-                let y = graphY - graphAmplitude * sin(Vfreq * t) / 2 - graphAmplitude * cos(Hfreq * t + phase);
+                let y = graphY - graphAmplitude * VY(t) / 2 - graphAmplitude * HY(t);
                 vertex(x, y);
             }
             endShape();
 
-            /**
             // Draw moving line
 
             let lineX = map(angle, 0, 360, graphX, graphX + graphPeriod);
@@ -218,17 +222,13 @@
 
             // Draw moving points on graph
 
-            let orangeY = graphY - graphAmplitude * cos(angle);
-            let redY = graphY - graphAmplitude * sin(angle);
-
             noStroke();
 
             fill('orange');
-            circle(lineX, orangeY, 10);
+            circle(lineX, graphY - graphAmplitude * HY(angle), 10);
 
             fill('red');
-            circle(lineX, redY, 10);
-            */
+            circle(lineX, graphY - graphAmplitude * VY(angle) / 2, 10);
         }
     </script>
 </body>
