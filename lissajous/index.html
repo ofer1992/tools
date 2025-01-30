@@ -16,13 +16,11 @@
             <input type="range" id="vfreq" name="vfreq" min="1" max="10" value="1">
             <input type="range" id="hfreq" name="hfreq" min="1" max="10" value="1">
         </div>
-        <div>
-            <label for="hamp">Amplitude</label>
-            <input type="range" id="hamp" name="hfreq" min="1" max="3" value="1" step="0.2">
     </div>
 
 
     <script>
+        const sep = 20;
         let phase = 0;
 
         let VcircleX = 100;
@@ -30,36 +28,27 @@
         let VcircleRadius = 75;
         let Vfreq = 1;
 
-        let HcircleRadius = VcircleRadius;
-        let HcircleX = VcircleX + VcircleRadius + HcircleRadius;
-        let HcircleY = VcircleY + VcircleRadius + HcircleRadius;
+        let HcircleRadius = VcircleRadius * 2;
+        let HcircleX = VcircleX + VcircleRadius + HcircleRadius + sep;
+        let HcircleY = VcircleY + VcircleRadius + HcircleRadius + sep;
         let Hfreq = 1;
 
-        let rectX = VcircleX + VcircleRadius;
+        let rectX = VcircleX + VcircleRadius + sep;
         let rectY = VcircleY - VcircleRadius;
         let rectW = HcircleRadius * 2;
         let rectH = VcircleRadius * 2;
 
-        function updateHcircle(amplitude) {
-            HcircleRadius = VcircleRadius *  amplitude;
-            HcircleX = VcircleX + VcircleRadius + HcircleRadius;
-            HcircleY = VcircleY + VcircleRadius + HcircleRadius;
-            rectW = HcircleRadius * 2;
-            rectH = VcircleRadius * 2;
-        }
-
-        let graphX = 50;
-        let graphY = 300;
+        let graphX = 150;
+        let graphY = 650;
         let graphAmplitude = 50;
         let graphPeriod = 300;
 
         document.getElementById("phase").oninput = (event) => { phase = Number.parseInt(event.target.value) };
         document.getElementById("vfreq").oninput = (event) => { Vfreq = Number.parseInt(event.target.value) };
         document.getElementById("hfreq").oninput = (event) => { Hfreq = Number.parseInt(event.target.value) };
-        document.getElementById("hamp").oninput = (event) => {updateHcircle(Number.parseFloat(event.target.value) )};
 
         function setup() {
-            createCanvas(600, 600);
+            createCanvas(600, 800);
             angleMode(DEGREES);
             describe(
                 'Animated demonstration of a point moving around the unit circle, together with the corresponding sine and cosine values moving along their graphs.'
@@ -71,12 +60,12 @@
 
             // Set angle based on frameCount, and display current value
 
-            let angle = Math.floor(frameCount, Math.max(Hfreq, Vfreq)) % 360;
+            let angle = frameCount / Math.max(Hfreq, Vfreq) % 360;
 
             fill(255);
             textSize(20);
             textAlign(LEFT, CENTER);
-            text(`angle: ${angle}`, 25, 25);
+            text(`angle: ${Math.floor(angle)}`, 25, 25);
 
             // Draw bounding rectangle
             noFill();
@@ -132,13 +121,11 @@
             // Draw Lissajous curve
 
             noFill();
-            stroke('red');
+            stroke('white');
             beginShape();
             for (let t = 0; t <= 360; t++) {
                 let x = HcircleX + HcircleRadius * cos(Hfreq * t + phase);
                 let y = VcircleY - VcircleRadius * sin(Vfreq * t);
-                // let x = map(t, 0, 360, graphX, graphX + graphPeriod);
-                // let y = graphY - graphAmplitude * sin(t);
                 vertex(x, y);
             }
             endShape();
@@ -149,7 +136,6 @@
             fill('white');
             circle(HpointX, VpointY, 10);
 
-            /**
             // Draw graph
 
             stroke('grey');
@@ -173,34 +159,49 @@
             text('-1', graphX / 2, graphY + graphAmplitude);
 
             fill('orange');
-            text('cos', graphX + graphPeriod + graphX / 2, graphY - graphAmplitude);
+            text('H', graphX + graphPeriod + graphX / 2, graphY - graphAmplitude);
             fill('red');
-            text('sin', graphX + graphPeriod + graphX / 2, graphY);
+            text('V', graphX + graphPeriod + graphX / 2, graphY);
+            fill('green');
+            text('Combined', graphX + graphPeriod + graphX / 2, graphY + graphAmplitude);
 
-            // Draw cosine curve
+            // Draw horizontal curve
 
             noFill();
             stroke('orange');
             beginShape();
             for (let t = 0; t <= 360; t++) {
                 let x = map(t, 0, 360, graphX, graphX + graphPeriod);
-                let y = graphY - graphAmplitude * cos(t);
+                let y = graphY - graphAmplitude * cos(Hfreq * t + phase);
                 vertex(x, y);
             }
             endShape();
 
-            // Draw sine curve
+            // Draw vertical curve
 
             noFill();
             stroke('red');
             beginShape();
             for (let t = 0; t <= 360; t++) {
                 let x = map(t, 0, 360, graphX, graphX + graphPeriod);
-                let y = graphY - graphAmplitude * sin(t);
+                let y = graphY - graphAmplitude * sin(Vfreq * t) / 2;
                 vertex(x, y);
             }
             endShape();
 
+            // Draw combined curve
+
+            noFill();
+            stroke('green');
+            beginShape();
+            for (let t = 0; t <= 360; t++) {
+                let x = map(t, 0, 360, graphX, graphX + graphPeriod);
+                let y = graphY - graphAmplitude * sin(Vfreq * t) / 2 - graphAmplitude * cos(Hfreq * t + phase);
+                vertex(x, y);
+            }
+            endShape();
+
+            /**
             // Draw moving line
 
             let lineX = map(angle, 0, 360, graphX, graphX + graphPeriod);
