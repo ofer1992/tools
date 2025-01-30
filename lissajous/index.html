@@ -6,46 +6,32 @@
 </head>
 
 <body>
-    <div id="params">
-        <div>
-            <label for="phase">Phase</label>
-            <input type="range" id="phase" name="phase" min="0" max="359" value="0">
-        </div>
-        <div>
-            <label for="freq">Frequency Ratio</label>
-            <input type="range" id="vfreq" name="vfreq" min="1" max="10" value="1">
-            <input type="range" id="hfreq" name="hfreq" min="1" max="10" value="1">
-        </div>
-    </div>
-
-
     <script>
         const sep = 20;
-        let phase = 0;
 
-        let VcircleX = 100;
-        let VcircleY = 150;
-        let VcircleRadius = 75;
-        let Vfreq = 1;
+        const VcircleX = 100;
+        const VcircleY = 150;
+        const VcircleRadius = 75;
 
-        let HcircleRadius = VcircleRadius * 2;
-        let HcircleX = VcircleX + VcircleRadius + HcircleRadius + sep;
-        let HcircleY = VcircleY + VcircleRadius + HcircleRadius + sep;
-        let Hfreq = 1;
+        const HcircleRadius = VcircleRadius * 2;
+        const HcircleX = VcircleX + VcircleRadius + HcircleRadius + sep;
+        const HcircleY = VcircleY + VcircleRadius + HcircleRadius + sep;
 
-        let rectX = VcircleX + VcircleRadius + sep;
-        let rectY = VcircleY - VcircleRadius;
-        let rectW = HcircleRadius * 2;
-        let rectH = VcircleRadius * 2;
+        const rectX = VcircleX + VcircleRadius + sep;
+        const rectY = VcircleY - VcircleRadius;
+        const rectW = HcircleRadius * 2;
+        const rectH = VcircleRadius * 2;
 
-        let graphX = 150;
-        let graphY = 650;
-        let graphAmplitude = 50;
-        let graphPeriod = 300;
+        const graphX = 150;
+        const graphY = 650;
+        const graphAmplitude = 50;
+        const graphPeriod = 300;
 
-        document.getElementById("phase").oninput = (event) => { phase = Number.parseInt(event.target.value) };
-        document.getElementById("vfreq").oninput = (event) => { Vfreq = Number.parseInt(event.target.value) };
-        document.getElementById("hfreq").oninput = (event) => { Hfreq = Number.parseInt(event.target.value) };
+        const SliderX = 20;
+        const sliderVoffset = 40;
+        const phaseSliderY = VcircleY + VcircleRadius * 2;
+        const hfreqSliderY = VcircleY + VcircleRadius * 2 + sliderVoffset;
+        const vfreqSliderY = VcircleY + VcircleRadius * 2 + 2 * sliderVoffset;
 
         function setup() {
             createCanvas(600, 800);
@@ -53,10 +39,32 @@
             describe(
                 'Animated demonstration of a point moving around the unit circle, together with the corresponding sine and cosine values moving along their graphs.'
             );
+            phaseSlider = createSlider(0, 359, 0);
+            phaseSlider.position(SliderX, phaseSliderY);
+            phaseSlider.size(80);
+
+            hfreqSlider = createSlider(1, 10, 1);
+            hfreqSlider.position(SliderX, hfreqSliderY);
+            hfreqSlider.size(80);
+
+            vfreqSlider = createSlider(1, 10, 1);
+            vfreqSlider.position(SliderX, vfreqSliderY);
+            vfreqSlider.size(80);
         }
 
         function draw() {
             background(0);
+            let phase = phaseSlider.value();
+            let Vfreq = vfreqSlider.value();
+            let Hfreq = hfreqSlider.value();
+
+            fill(255);
+            textSize(17);
+            textAlign(LEFT, CENTER);
+            const valOffset = 80;
+            text(`phase=${phaseSlider.value()}`, SliderX, phaseSliderY + sliderVoffset / 2);
+            text(`vfreq=${vfreqSlider.value()}`, SliderX, vfreqSliderY + sliderVoffset / 2);
+            text(`hfreq=${hfreqSlider.value()}`, SliderX, hfreqSliderY + sliderVoffset / 2);
 
             // Set angle based on frameCount, and display current value
 
