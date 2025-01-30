@@ -68,7 +68,7 @@
 
             // Set angle based on frameCount, and display current value
 
-            let angle = frameCount / Math.max(Hfreq, Vfreq) % 360;
+            let angle = frameCount / Math.max(Hfreq, Vfreq);
 
             fill(255);
             textSize(20);
@@ -114,6 +114,7 @@
 
             fill('red');
             circle(VpointX, VpointY, 10);
+            circle(VcircleX, VpointY, 7);
 
             // Horizontal
             let HpointX = HcircleX + HcircleRadius * cos(Hfreq * angle + phase);
@@ -127,6 +128,7 @@
 
             fill('orange');
             circle(HpointX, HpointY, 10);
+            circle(HpointX, HcircleY, 7);
 
             // Draw Lissajous curve
             const HY = t => cos(Hfreq * t + phase);
@@ -148,6 +150,13 @@
 
             fill('white');
             circle(HpointX, VpointY, 10);
+            noFill();
+            stroke(128);
+            strokeWeight(1);
+            drawingContext.setLineDash([1, 3]);
+            line(VcircleX, VpointY, HpointX, VpointY);
+            line(HpointX, HcircleY, HpointX, VpointY);
+            drawingContext.setLineDash([]);
 
             // Draw graph
 
