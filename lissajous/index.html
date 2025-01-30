@@ -43,11 +43,11 @@
             phaseSlider.position(SliderX, phaseSliderY);
             phaseSlider.size(80);
 
-            hfreqSlider = createSlider(1, 10, 1);
+            hfreqSlider = createSlider(1, 10, 1, 0.01);
             hfreqSlider.position(SliderX, hfreqSliderY);
             hfreqSlider.size(80);
 
-            vfreqSlider = createSlider(1, 10, 1);
+            vfreqSlider = createSlider(1, 10, 1, 0.01);
             vfreqSlider.position(SliderX, vfreqSliderY);
             vfreqSlider.size(80);
         }
@@ -134,9 +134,9 @@
 
             noFill();
             stroke(180);
-            strokeWeight(2);
+            strokeWeight(1);
             beginShape();
-            for (let t = 0; t <= 360; t+=0.5) {
+            for (let t = 0; t <= 3600; t+=0.5) {
                 let x = HcircleX + HcircleRadius * HY(t);
                 let y = VcircleY - VcircleRadius * VY(t);
                 vertex(x, y);
