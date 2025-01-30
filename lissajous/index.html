@@ -5,15 +5,29 @@
 </head>
 
 <body>
+    <input type="range" id="phase" name="phase" min="0" max="359" value="0">
+
     <script>
-        let circleX = 200;
-        let circleY = 150;
-        let circleRadius = 75;
+        let VcircleX = 100;
+        let VcircleY = 150;
+        let VcircleRadius = 75;
+        let phase = 0;
+
+        let HcircleRadius = 100;
+        let HcircleX = VcircleX + VcircleRadius + HcircleRadius;
+        let HcircleY = VcircleY + VcircleRadius + HcircleRadius;
+
+        let rectX = VcircleX + VcircleRadius;
+        let rectY = VcircleY - VcircleRadius;
+        let rectW = HcircleRadius * 2;
+        let rectH = VcircleRadius * 2;
 
         let graphX = 50;
         let graphY = 300;
         let graphAmplitude = 50;
         let graphPeriod = 300;
+
+        document.getElementById("phase").onchange = (event) => {phase = Number.parseInt(event.target.value)};
 
         function setup() {
             createCanvas(600, 600);
@@ -35,33 +49,60 @@
             textAlign(LEFT, CENTER);
             text(`angle: ${angle}`, 25, 25);
 
+            // Draw bounding rectangle
+            noFill();
+            stroke(128);
+            strokeWeight(3);
+            rect(rectX, rectY, rectW, rectH);
+
+
             // Draw circle and diameters
 
             noFill();
             stroke(128);
             strokeWeight(3);
-            circle(circleX, circleY, 2 * circleRadius);
-            line(circleX, circleY - circleRadius, circleX, circleY + circleRadius);
-            line(circleX - circleRadius, circleY, circleX + circleRadius, circleY);
+            circle(VcircleX, VcircleY, 2 * VcircleRadius);
+            line(VcircleX, VcircleY - VcircleRadius, VcircleX, VcircleY + VcircleRadius);
+            line(VcircleX - VcircleRadius, VcircleY, VcircleX + VcircleRadius, VcircleY);
+
+            noFill();
+            stroke(128);
+            strokeWeight(3);
+            circle(HcircleX, HcircleY, 2 * HcircleRadius);
+            line(HcircleX, HcircleY - HcircleRadius, HcircleX, HcircleY + HcircleRadius);
+            line(HcircleX - HcircleRadius, HcircleY, HcircleX + HcircleRadius, HcircleY);
 
             // Draw moving points
 
-            let pointX = circleX + circleRadius * cos(angle);
-            let pointY = circleY - circleRadius * sin(angle);
+            // Vertical
+            let VpointX = VcircleX + VcircleRadius * cos(angle);
+            let VpointY = VcircleY - VcircleRadius * sin(angle);
 
-            line(circleX, circleY, pointX, pointY);
+            line(VcircleX, VcircleY, VpointX, VpointY);
 
             noStroke();
 
             fill('white');
-            circle(pointX, pointY, 10);
+            circle(VpointX, VpointY, 10);
 
-            fill('orange');
-            circle(pointX, circleY, 10);
+            // Horizontal
+            let HpointX = HcircleX + HcircleRadius * cos(angle + phase);
+            let HpointY = HcircleY - HcircleRadius * sin(angle + phase);
 
-            fill('red');
-            circle(circleX, pointY, 10);
+            line(HcircleX, HcircleY, HpointX, HpointY);
 
+            noStroke();
+
+            fill('white');
+            circle(HpointX, HpointY, 10);
+
+            // Combined
+            noStroke();
+
+            fill('white');
+            circle(HpointX, VpointY, 10);
+
+            /**
             // Draw graph
 
             stroke('grey');
@@ -131,6 +172,7 @@
 
             fill('red');
             circle(lineX, redY, 10);
+            */
         }
     </script>
 </body>
