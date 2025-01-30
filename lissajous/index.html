@@ -1,33 +1,62 @@
 <html>
+
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.js"></script>
 
 </head>
 
 <body>
-    <input type="range" id="phase" name="phase" min="0" max="359" value="0">
+    <div id="params">
+        <div>
+            <label for="phase">Phase</label>
+            <input type="range" id="phase" name="phase" min="0" max="359" value="0">
+        </div>
+        <div>
+            <label for="freq">Frequency Ratio</label>
+            <input type="range" id="vfreq" name="vfreq" min="1" max="10" value="1">
+            <input type="range" id="hfreq" name="hfreq" min="1" max="10" value="1">
+        </div>
+        <div>
+            <label for="hamp">Amplitude</label>
+            <input type="range" id="hamp" name="hfreq" min="1" max="3" value="1" step="0.2">
+    </div>
+
 
     <script>
+        let phase = 0;
+
         let VcircleX = 100;
         let VcircleY = 150;
         let VcircleRadius = 75;
-        let phase = 0;
+        let Vfreq = 1;
 
-        let HcircleRadius = 100;
+        let HcircleRadius = VcircleRadius;
         let HcircleX = VcircleX + VcircleRadius + HcircleRadius;
         let HcircleY = VcircleY + VcircleRadius + HcircleRadius;
+        let Hfreq = 1;
 
         let rectX = VcircleX + VcircleRadius;
         let rectY = VcircleY - VcircleRadius;
         let rectW = HcircleRadius * 2;
         let rectH = VcircleRadius * 2;
 
+        function updateHcircle(amplitude) {
+            HcircleRadius = VcircleRadius *  amplitude;
+            HcircleX = VcircleX + VcircleRadius + HcircleRadius;
+            HcircleY = VcircleY + VcircleRadius + HcircleRadius;
+            rectW = HcircleRadius * 2;
+            rectH = VcircleRadius * 2;
+        }
+
         let graphX = 50;
         let graphY = 300;
         let graphAmplitude = 50;
         let graphPeriod = 300;
 
-        document.getElementById("phase").onchange = (event) => {phase = Number.parseInt(event.target.value)};
+        document.getElementById("phase").oninput = (event) => { phase = Number.parseInt(event.target.value) };
+        document.getElementById("vfreq").oninput = (event) => { Vfreq = Number.parseInt(event.target.value) };
+        document.getElementById("hfreq").oninput = (event) => { Hfreq = Number.parseInt(event.target.value) };
+        document.getElementById("hamp").oninput = (event) => {updateHcircle(Number.parseFloat(event.target.value) )};
 
         function setup() {
             createCanvas(600, 600);
@@ -42,7 +71,7 @@
 
             // Set angle based on frameCount, and display current value
 
-            let angle = frameCount % 360;
+            let angle = Math.floor(frameCount, Math.max(Hfreq, Vfreq)) % 360;
 
             fill(255);
             textSize(20);
@@ -75,9 +104,11 @@
             // Draw moving points
 
             // Vertical
-            let VpointX = VcircleX + VcircleRadius * cos(angle);
-            let VpointY = VcircleY - VcircleRadius * sin(angle);
+            let VpointX = VcircleX + VcircleRadius * cos(Vfreq * angle);
+            let VpointY = VcircleY - VcircleRadius * sin(Vfreq * angle);
 
+            stroke(128);
+            strokeWeight(3);
             line(VcircleX, VcircleY, VpointX, VpointY);
 
             noStroke();
@@ -86,15 +117,31 @@
             circle(VpointX, VpointY, 10);
 
             // Horizontal
-            let HpointX = HcircleX + HcircleRadius * cos(angle + phase);
-            let HpointY = HcircleY - HcircleRadius * sin(angle + phase);
+            let HpointX = HcircleX + HcircleRadius * cos(Hfreq * angle + phase);
+            let HpointY = HcircleY - HcircleRadius * sin(Hfreq * angle + phase);
 
+            stroke(128);
+            strokeWeight(3);
             line(HcircleX, HcircleY, HpointX, HpointY);
 
             noStroke();
 
             fill('white');
             circle(HpointX, HpointY, 10);
+
+            // Draw Lissajous curve
+
+            noFill();
+            stroke('red');
+            beginShape();
+            for (let t = 0; t <= 360; t++) {
+                let x = HcircleX + HcircleRadius * cos(Hfreq * t + phase);
+                let y = VcircleY - VcircleRadius * sin(Vfreq * t);
+                // let x = map(t, 0, 360, graphX, graphX + graphPeriod);
+                // let y = graphY - graphAmplitude * sin(t);
+                vertex(x, y);
+            }
+            endShape();
 
             // Combined
             noStroke();
